@@ -8,23 +8,12 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import {
-  doc,
-  getFirestore,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
-import {
-  getBlob,
-  getStorage,
-  ref,
-  uploadString,
-} from "firebase/storage";
+import { doc, getFirestore, serverTimestamp, setDoc } from "firebase/firestore";
+import { getBlob, getStorage, ref, uploadString } from "firebase/storage";
 
 import { loadFromBlob } from "@excalidraw/excalidraw/data/blob";
 import { serializeAsJSON } from "@excalidraw/excalidraw/data/json";
 
-import type { User } from "firebase/auth";
 import type {
   AppState,
   BinaryFiles,
@@ -32,17 +21,11 @@ import type {
 } from "@excalidraw/excalidraw/types";
 import type { OrderedExcalidrawElement } from "@excalidraw/element/types";
 
-let FIREBASE_CONFIG: Record<string, any>;
-try {
-  FIREBASE_CONFIG = JSON.parse(import.meta.env.VITE_APP_FIREBASE_CONFIG);
-} catch (error: any) {
-  console.warn(
-    `Error JSON parsing firebase config. Supplied value: ${
-      import.meta.env.VITE_APP_FIREBASE_CONFIG
-    }`,
-  );
-  FIREBASE_CONFIG = {};
-}
+import { getFirebaseConfig } from "./firebaseConfig";
+
+import type { User } from "firebase/auth";
+
+const FIREBASE_CONFIG = getFirebaseConfig();
 
 const getFirebaseApp = () => {
   if (getApps().length) {
