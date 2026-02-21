@@ -464,10 +464,10 @@ const ExcalidrawWrapper = () => {
       }) => {
         try {
           await saveSceneToDyldrawCloud({ uid, elements, appState, files });
-          setCloudSyncLabel("Dyldraw Cloud: synced");
+          setCloudSyncLabel("Dyldraw: synced");
         } catch (error: any) {
           console.error(error);
-          setCloudSyncLabel("Dyldraw Cloud: sync failed");
+          setCloudSyncLabel("Dyldraw: sync failed");
         }
       },
       3000,
@@ -536,13 +536,13 @@ const ExcalidrawWrapper = () => {
           appState: excalidrawAPI.getAppState(),
           files: excalidrawAPI.getFiles(),
         });
-        setCloudSyncLabel("Dyldraw Cloud: saved");
+        setCloudSyncLabel("Dyldraw: saved");
         if (!opts.silent) {
           excalidrawAPI.setToast({ message: "Saved to Dyldraw Cloud" });
         }
       } catch (error: any) {
         console.error(error);
-        setCloudSyncLabel("Dyldraw Cloud: save failed");
+        setCloudSyncLabel("Dyldraw: save failed");
         if (!opts.silent) {
           excalidrawAPI.setToast({
             message: "Could not save to Dyldraw Cloud",
@@ -570,7 +570,7 @@ const ExcalidrawWrapper = () => {
       try {
         const scene = await loadSceneFromDyldrawCloud(user.uid);
         if (!scene) {
-          setCloudSyncLabel("Dyldraw Cloud: no saved scene yet");
+          setCloudSyncLabel("Dyldraw: no saved scene yet");
           if (!opts.silent) {
             excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
           }
@@ -603,14 +603,14 @@ const ExcalidrawWrapper = () => {
         if (scene.files) {
           excalidrawAPI.addFiles(Object.values(scene.files));
         }
-        setCloudSyncLabel("Dyldraw Cloud: loaded");
+        setCloudSyncLabel("Dyldraw: loaded");
         if (!opts.silent) {
           excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
         }
       } catch (error: any) {
         if (!opts.silent) {
           console.error(error);
-          setCloudSyncLabel("Dyldraw Cloud: load failed");
+          setCloudSyncLabel("Dyldraw: load failed");
           excalidrawAPI.setToast({
             message: "Could not load from Dyldraw Cloud",
           });
@@ -1114,7 +1114,7 @@ const ExcalidrawWrapper = () => {
     },
   };
   const DyldrawCloudSaveCommand = {
-    label: "Save to Dyldraw Cloud",
+    label: "Save to Dyldraw",
     category: DEFAULT_CATEGORIES.app,
     predicate: () => !!authUser,
     icon: <DyldrawLogoIcon size={14} />,
@@ -1166,11 +1166,7 @@ const ExcalidrawWrapper = () => {
                 })}
                 type="button"
                 onSelect={onTopRightAuthAction}
-                title={
-                  authUser
-                    ? "Sign out of Dyldraw Cloud"
-                    : "Sign in to Dyldraw Cloud"
-                }
+                title={authUser ? "Sign out of Dyldraw" : "Sign in to Dyldraw"}
                 aria-label={authUser ? "Sign out" : "Sign in"}
               >
                 <span

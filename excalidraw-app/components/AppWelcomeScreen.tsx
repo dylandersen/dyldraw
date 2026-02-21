@@ -51,7 +51,7 @@ export const AppWelcomeScreen: React.FC<{
               shortcut={null}
               icon={loginIcon}
             >
-              Load from Dyldraw Cloud
+              Load from Dyldraw
             </WelcomeScreen.Center.MenuItem>
           ) : (
             <WelcomeScreen.Center.MenuItem

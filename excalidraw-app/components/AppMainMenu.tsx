@@ -65,14 +65,14 @@ export const AppMainMenu: React.FC<{
             disabled={props.isCloudActionInProgress}
             className="highlighted"
           >
-            Save to Dyldraw Cloud
+            Save to Dyldraw
           </MainMenu.Item>
           <MainMenu.Item
             icon={downloadIcon}
             onSelect={props.onCloudLoad}
             disabled={props.isCloudActionInProgress}
           >
-            Load from Dyldraw Cloud
+            Load from Dyldraw
           </MainMenu.Item>
           <MainMenu.Item icon={loginIcon} onSelect={props.onSignOut}>
             Sign out
