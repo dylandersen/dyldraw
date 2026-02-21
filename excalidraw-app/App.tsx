@@ -1172,6 +1172,9 @@ const ExcalidrawWrapper = () => {
                 >
                   {loginIcon}
                 </span>
+                <span className="dyldraw-auth-button__label">
+                  {authUser ? "Sign Out" : "Sign In"}
+                </span>
               </Button>
               <LiveCollaborationTrigger
                 isCollaborating={isCollaborating}

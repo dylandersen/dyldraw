@@ -80,23 +80,33 @@
   }
 
   .dyldraw-auth-button {
+    --button-width: auto;
     --button-bg: var(--color-primary);
-    --button-color: var(--color-surface-lowest);
+    --button-color: #fff;
     --button-border: var(--color-primary);
     --button-hover-bg: var(--color-primary-darker);
     --button-hover-border: var(--color-primary-darker);
     --button-active-bg: var(--color-primary-darker);
     box-shadow: 0 0 0 1px var(--color-surface-lowest);
     flex-shrink: 0;
+    gap: 0.45rem;
+    padding-inline: 0.8rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
   }
 
   .dyldraw-auth-button--signed-in {
-    --button-bg: var(--color-surface-low);
-    --button-color: var(--color-on-surface);
-    --button-border: var(--color-surface-low);
-    --button-hover-bg: var(--color-surface-mid);
-    --button-hover-border: var(--color-surface-mid);
-    --button-active-bg: var(--color-surface-high);
+    --button-bg: var(--color-danger-dark);
+    --button-color: #fff;
+    --button-border: var(--color-danger-dark);
+    --button-hover-bg: var(--color-danger-darker);
+    --button-hover-border: var(--color-danger-darker);
+    --button-active-bg: var(--color-danger-darkest);
   }
 
   .dyldraw-auth-button__icon {
@@ -107,6 +117,10 @@
 
   .dyldraw-auth-button__icon--signout {
     transform: scaleX(-1);
+  }
+
+  .dyldraw-auth-button__label {
+    white-space: nowrap;
   }
 }
 
