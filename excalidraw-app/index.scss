@@ -78,6 +78,36 @@
       color: var(--color-danger-text);
     }
   }
+
+  .dyldraw-auth-button {
+    --button-bg: var(--color-primary);
+    --button-color: var(--color-surface-lowest);
+    --button-border: var(--color-primary);
+    --button-hover-bg: var(--color-primary-darker);
+    --button-hover-border: var(--color-primary-darker);
+    --button-active-bg: var(--color-primary-darker);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest);
+    flex-shrink: 0;
+  }
+
+  .dyldraw-auth-button--signed-in {
+    --button-bg: var(--color-surface-low);
+    --button-color: var(--color-on-surface);
+    --button-border: var(--color-surface-low);
+    --button-hover-bg: var(--color-surface-mid);
+    --button-hover-border: var(--color-surface-mid);
+    --button-active-bg: var(--color-surface-high);
+  }
+
+  .dyldraw-auth-button__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dyldraw-auth-button__icon--signout {
+    transform: scaleX(-1);
+  }
 }
 
 .excalidraw-app.is-collaborating {

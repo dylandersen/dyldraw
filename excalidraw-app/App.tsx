@@ -39,9 +39,11 @@ import { t } from "@excalidraw/excalidraw/i18n";
 
 import {
   GithubIcon,
+  loginIcon,
   usersIcon,
   share,
 } from "@excalidraw/excalidraw/components/icons";
+import { Button } from "@excalidraw/excalidraw/components/Button";
 import { isElementLink } from "@excalidraw/element";
 import {
   bumpElementVersions,
@@ -674,6 +676,14 @@ const ExcalidrawWrapper = () => {
     }
   }, []);
 
+  const onTopRightAuthAction = useCallback(() => {
+    if (authUser) {
+      void onSignOut();
+      return;
+    }
+    setIsAuthDialogOpen(true);
+  }, [authUser, onSignOut]);
+
   useEffect(() => {
     if (!authUser || !excalidrawAPI) {
       return;
@@ -1142,6 +1152,27 @@ const ExcalidrawWrapper = () => {
           return (
             <div className="excalidraw-ui-top-right">
               {collabError.message && <CollabError collabError={collabError} />}
+              <Button
+                className={clsx("dyldraw-auth-button", {
+                  "dyldraw-auth-button--signed-in": !!authUser,
+                })}
+                type="button"
+                onSelect={onTopRightAuthAction}
+                title={
+                  authUser
+                    ? "Sign out of Dyldraw Cloud"
+                    : "Sign in to Dyldraw Cloud"
+                }
+                aria-label={authUser ? "Sign out" : "Sign in"}
+              >
+                <span
+                  className={clsx("dyldraw-auth-button__icon", {
+                    "dyldraw-auth-button__icon--signout": !!authUser,
+                  })}
+                >
+                  {loginIcon}
+                </span>
+              </Button>
               <LiveCollaborationTrigger
                 isCollaborating={isCollaborating}
                 onSelect={() =>

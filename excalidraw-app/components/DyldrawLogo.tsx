@@ -29,8 +29,8 @@ export const DyldrawWelcomeLogo = () => {
       src="/dylDraw.png"
       alt="Dyldraw"
       style={{
-        width: 96,
-        height: 96,
+        width: 130,
+        height: 130,
         objectFit: "cover",
         borderRadius: 16,
       }}
