@@ -1080,7 +1080,7 @@ const ExcalidrawWrapper = () => {
     icon: <DyldrawLogoIcon size={14} />,
     keywords: ["dyldraw", "home", "cloud", "whiteboard"],
     perform: () => {
-      window.open("https://dyldraw.vercel.app", "_blank", "noopener noreferrer");
+      window.open("https://dyldraw.com", "_blank", "noopener noreferrer");
     },
   };
   const DyldrawAuthCommand = {

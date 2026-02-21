@@ -74,7 +74,7 @@ export const AIComponents = ({
                   <div style="color:red">Too many requests today,</br>please try again tomorrow!</div>
                   </br>
                   </br>
-                  <div>You can sign in to <a href="https://dyldraw.vercel.app" target="_blank" rel="noopener">Dyldraw Cloud</a> for higher limits.</div>
+                  <div>You can sign in to <a href="https://dyldraw.com" target="_blank" rel="noopener">Dyldraw Cloud</a> for higher limits.</div>
                 </div>
                 </body>
                 </html>`,

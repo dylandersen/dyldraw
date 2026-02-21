@@ -51,7 +51,7 @@ export const AppMainMenu: React.FC<{
       <MainMenu.Separator />
       <MainMenu.ItemLink
         icon={<DyldrawLogoIcon />}
-        href="https://dyldraw.vercel.app"
+        href="https://dyldraw.com"
         className=""
       >
         Dyldraw

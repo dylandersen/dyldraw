@@ -118,7 +118,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       Sitemap({
-        hostname: "https://dyldraw.vercel.app",
+        hostname: "https://dyldraw.com",
         outDir: "build",
         changefreq: "monthly",
         // its static in public folder

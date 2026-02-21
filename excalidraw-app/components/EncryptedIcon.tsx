@@ -8,7 +8,7 @@ export const EncryptedIcon = () => {
   return (
     <a
       className="encrypted-icon tooltip"
-      href="https://dyldraw.vercel.app"
+      href="https://dyldraw.com"
       target="_blank"
       rel="noopener"
       aria-label={t("encrypted.link")}

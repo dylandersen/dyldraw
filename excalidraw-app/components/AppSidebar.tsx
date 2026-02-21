@@ -41,7 +41,7 @@ export const AppSidebar = () => {
           <div className="app-sidebar-promo-text">
             Make comments with Dyldraw Pro
           </div>
-          <LinkButton href="https://dyldraw.vercel.app">
+          <LinkButton href="https://dyldraw.com">
             Dyldraw Cloud
           </LinkButton>
         </div>
@@ -61,7 +61,7 @@ export const AppSidebar = () => {
           <div className="app-sidebar-promo-text">
             Create presentations with Dyldraw Pro
           </div>
-          <LinkButton href="https://dyldraw.vercel.app">
+          <LinkButton href="https://dyldraw.com">
             Dyldraw Cloud
           </LinkButton>
         </div>

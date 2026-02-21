@@ -10,4 +10,4 @@ Allow: /
 Allow: /sitemap.xml
 Disallow: /
 
-Sitemap: https://dyldraw.vercel.app/sitemap.xml
+Sitemap: https://dyldraw.com/sitemap.xml
