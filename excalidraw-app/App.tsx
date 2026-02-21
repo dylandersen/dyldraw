@@ -551,12 +551,13 @@ const ExcalidrawWrapper = () => {
     [excalidrawAPI],
   );
 
-  const onCloudLoad = useCallback(async () => {
-    const user = authUserRef.current;
-    if (!user) {
-      setIsAuthDialogOpen(true);
-      return;
-    }
+  const onCloudLoad = useCallback(
+    async (opts: { silent?: boolean } = {}) => {
+      const user = authUserRef.current;
+      if (!user) {
+        setIsAuthDialogOpen(true);
+        return;
+      }
     if (!excalidrawAPI) {
       return;
     }
@@ -566,7 +567,9 @@ const ExcalidrawWrapper = () => {
       const scene = await loadSceneFromDyldrawCloud(user.uid);
       if (!scene) {
         setCloudSyncLabel("Dyldraw Cloud: no saved scene yet");
-        excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
+        if (!opts.silent) {
+          excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
+        }
         return;
       }
 
@@ -594,15 +597,23 @@ const ExcalidrawWrapper = () => {
         excalidrawAPI.addFiles(Object.values(scene.files));
       }
       setCloudSyncLabel("Dyldraw Cloud: loaded");
-      excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
+      if (!opts.silent) {
+        excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
+      }
     } catch (error: any) {
-      console.error(error);
-      setCloudSyncLabel("Dyldraw Cloud: load failed");
-      excalidrawAPI.setToast({ message: "Could not load from Dyldraw Cloud" });
+      if (!opts.silent) {
+        console.error(error);
+        setCloudSyncLabel("Dyldraw Cloud: load failed");
+        excalidrawAPI.setToast({ message: "Could not load from Dyldraw Cloud" });
+      } else {
+        setCloudSyncLabel(null);
+      }
     } finally {
       setIsCloudActionInProgress(false);
     }
-  }, [excalidrawAPI]);
+    },
+    [excalidrawAPI],
+  );
 
   const onSignOut = useCallback(async () => {
     setIsCloudActionInProgress(true);
@@ -671,7 +682,7 @@ const ExcalidrawWrapper = () => {
       return;
     }
     loadedCloudSceneForUidRef.current = authUser.uid;
-    onCloudLoad();
+    onCloudLoad({ silent: true });
   }, [authUser, excalidrawAPI, onCloudLoad]);
 
   useEffect(() => {

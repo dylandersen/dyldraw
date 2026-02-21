@@ -15,7 +15,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import {
-  getDownloadURL,
+  getBlob,
   getStorage,
   ref,
   uploadString,
@@ -122,12 +122,8 @@ export const loadSceneFromDyldrawCloud = async (
 ): Promise<ExcalidrawInitialDataState | null> => {
   const storage = getStorage(getFirebaseApp());
   try {
-    const downloadUrl = await getDownloadURL(ref(storage, userScenePath(uid)));
-    const response = await fetch(downloadUrl);
-    if (!response.ok) {
-      throw new Error("Unable to download cloud scene");
-    }
-    return loadFromBlob(await response.blob(), null, null);
+    const blob = await getBlob(ref(storage, userScenePath(uid)));
+    return loadFromBlob(blob, null, null);
   } catch (error: any) {
     if (error?.code === "storage/object-not-found") {
       return null;
