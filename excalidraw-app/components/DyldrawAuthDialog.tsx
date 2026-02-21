@@ -4,6 +4,8 @@ import { Dialog } from "@excalidraw/excalidraw/components/Dialog";
 import DialogActionButton from "@excalidraw/excalidraw/components/DialogActionButton";
 
 import "./DyldrawAuthDialog.scss";
+import { DyldrawLogoIcon } from "./DyldrawLogo";
+import { GoogleLogoIcon } from "./GoogleLogoIcon";
 
 export const DyldrawAuthDialog = ({
   isOpen,
@@ -34,6 +36,10 @@ export const DyldrawAuthDialog = ({
   return (
     <Dialog size="small" onCloseRequest={onClose} title="Sign in to Dyldraw">
       <div className="dyldraw-auth-dialog">
+        <div className="dyldraw-auth-dialog__brand">
+          <DyldrawLogoIcon size={20} rounded />
+          <span>Dyldraw Cloud</span>
+        </div>
         <p className="dyldraw-auth-dialog__copy">
           Use your account to save your canvas to Dyldraw Cloud.
         </p>
@@ -76,7 +82,9 @@ export const DyldrawAuthDialog = ({
             isLoading={isSubmitting}
             disabled={!emailReady || isSubmitting}
             onClick={() => onSignInWithEmail(email.trim(), password)}
-          />
+          >
+            <DyldrawLogoIcon size={16} rounded />
+          </DialogActionButton>
           <DialogActionButton
             label="Create account"
             isLoading={isSubmitting}
@@ -90,7 +98,9 @@ export const DyldrawAuthDialog = ({
           isLoading={isSubmitting}
           disabled={isSubmitting}
           onClick={() => onSignInWithGoogle()}
-        />
+        >
+          <GoogleLogoIcon size={16} />
+        </DialogActionButton>
       </div>
     </Dialog>
   );
