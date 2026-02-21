@@ -1,0 +1,8 @@
+.git
+**/node_modules
+**/.next
+**/build
+**/coverage
+examples/with-nextjs/.pnpm-store
+examples/with-nextjs/pnpm-lock.yaml
+.DS_Store

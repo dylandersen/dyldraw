@@ -1,0 +1,46 @@
+.dyldraw-auth-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dyldraw-auth-dialog__copy {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-secondary);
+}
+
+.dyldraw-auth-dialog__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.dyldraw-auth-dialog__input {
+  width: 100%;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--default-border-color);
+  background: var(--input-bg-color);
+  color: var(--text-primary-color);
+  padding: 0.5rem 0.65rem;
+}
+
+.dyldraw-auth-dialog__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.dyldraw-auth-dialog__divider {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0;
+}
+
+.dyldraw-auth-dialog__error {
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--border-radius-md);
+  font-size: 0.85rem;
+}

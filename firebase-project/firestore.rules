@@ -1,10 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
+    match /scenes/{sceneId} {
       allow get, write: if true;
-      // never set this to true, otherwise anyone can delete anyone else's drawing.
       allow list: if false;
+    }
+
+    match /users/{userId}/private/{documentId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

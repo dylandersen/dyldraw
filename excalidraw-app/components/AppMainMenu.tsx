@@ -1,7 +1,8 @@
 import {
   loginIcon,
-  ExcalLogo,
   eyeIcon,
+  save,
+  downloadIcon,
 } from "@excalidraw/excalidraw/components/icons";
 import { MainMenu } from "@excalidraw/excalidraw/index";
 import React from "react";
@@ -11,12 +12,20 @@ import { isDevEnv } from "@excalidraw/common";
 import type { Theme } from "@excalidraw/element/types";
 
 import { LanguageList } from "../app-language/LanguageList";
-import { isExcalidrawPlusSignedUser } from "../app_constants";
+import { DyldrawLogoIcon } from "./DyldrawLogo";
 
 import { saveDebugState } from "./DebugCanvas";
 
 export const AppMainMenu: React.FC<{
   onCollabDialogOpen: () => any;
+  onAuthDialogOpen: () => void;
+  onCloudSave: () => void;
+  onCloudLoad: () => void;
+  onSignOut: () => void;
+  isAuthenticated: boolean;
+  signedInLabel: string | null;
+  cloudSyncLabel: string | null;
+  isCloudActionInProgress: boolean;
   isCollaborating: boolean;
   isCollabEnabled: boolean;
   theme: Theme | "system";
@@ -41,24 +50,48 @@ export const AppMainMenu: React.FC<{
       <MainMenu.DefaultItems.ClearCanvas />
       <MainMenu.Separator />
       <MainMenu.ItemLink
-        icon={ExcalLogo}
-        href={`${
-          import.meta.env.VITE_APP_PLUS_LP
-        }/plus?utm_source=excalidraw&utm_medium=app&utm_content=hamburger`}
+        icon={<DyldrawLogoIcon />}
+        href="https://dyldraw.vercel.app"
         className=""
       >
-        Excalidraw+
+        Dyldraw
       </MainMenu.ItemLink>
-      <MainMenu.DefaultItems.Socials />
-      <MainMenu.ItemLink
-        icon={loginIcon}
-        href={`${import.meta.env.VITE_APP_PLUS_APP}${
-          isExcalidrawPlusSignedUser ? "" : "/sign-up"
-        }?utm_source=signin&utm_medium=app&utm_content=hamburger`}
-        className="highlighted"
-      >
-        {isExcalidrawPlusSignedUser ? "Sign in" : "Sign up"}
-      </MainMenu.ItemLink>
+      {props.isAuthenticated ? (
+        <>
+          <MainMenu.Item
+            icon={save}
+            onSelect={props.onCloudSave}
+            disabled={props.isCloudActionInProgress}
+            className="highlighted"
+          >
+            Save to Dyldraw Cloud
+          </MainMenu.Item>
+          <MainMenu.Item
+            icon={downloadIcon}
+            onSelect={props.onCloudLoad}
+            disabled={props.isCloudActionInProgress}
+          >
+            Load from Dyldraw Cloud
+          </MainMenu.Item>
+          <MainMenu.Item icon={loginIcon} onSelect={props.onSignOut}>
+            Sign out
+          </MainMenu.Item>
+          {props.signedInLabel && (
+            <MainMenu.Item disabled>{props.signedInLabel}</MainMenu.Item>
+          )}
+          {props.cloudSyncLabel && (
+            <MainMenu.Item disabled>{props.cloudSyncLabel}</MainMenu.Item>
+          )}
+        </>
+      ) : (
+        <MainMenu.Item
+          icon={loginIcon}
+          onSelect={props.onAuthDialogOpen}
+          className="highlighted"
+        >
+          Sign in
+        </MainMenu.Item>
+      )}
       {isDevEnv() && (
         <MainMenu.Item
           icon={eyeIcon}

@@ -1,48 +1,27 @@
 import { loginIcon } from "@excalidraw/excalidraw/components/icons";
-import { POINTER_EVENTS } from "@excalidraw/common";
 import { useI18n } from "@excalidraw/excalidraw/i18n";
 import { WelcomeScreen } from "@excalidraw/excalidraw/index";
 import React from "react";
 
-import { isExcalidrawPlusSignedUser } from "../app_constants";
+import { DyldrawWelcomeLogo } from "./DyldrawLogo";
 
 export const AppWelcomeScreen: React.FC<{
   onCollabDialogOpen: () => any;
+  onAuthDialogOpen: () => void;
+  onCloudLoad: () => void;
+  isAuthenticated: boolean;
   isCollabEnabled: boolean;
 }> = React.memo((props) => {
   const { t } = useI18n();
-  let headingContent;
-
-  if (isExcalidrawPlusSignedUser) {
-    headingContent = t("welcomeScreen.app.center_heading_plus")
-      .split(/(Excalidraw\+)/)
-      .map((bit, idx) => {
-        if (bit === "Excalidraw+") {
-          return (
-            <a
-              style={{ pointerEvents: POINTER_EVENTS.inheritFromUI }}
-              href={`${
-                import.meta.env.VITE_APP_PLUS_APP
-              }?utm_source=excalidraw&utm_medium=app&utm_content=welcomeScreenSignedInUser`}
-              key={idx}
-            >
-              Excalidraw+
-            </a>
-          );
-        }
-        return bit;
-      });
-  } else {
-    headingContent = (
-      <>
-        {t("welcomeScreen.app.center_heading")}
-        <br />
-        {t("welcomeScreen.app.center_heading_line2")}
-        <br />
-        {t("welcomeScreen.app.center_heading_line3")}
-      </>
-    );
-  }
+  const headingContent = (
+    <>
+      Draw ideas fast with Dyldraw.
+      <br />
+      Collaborate live.
+      <br />
+      Keep your flow moving.
+    </>
+  );
 
   return (
     <WelcomeScreen>
@@ -52,7 +31,9 @@ export const AppWelcomeScreen: React.FC<{
       <WelcomeScreen.Hints.ToolbarHint />
       <WelcomeScreen.Hints.HelpHint />
       <WelcomeScreen.Center>
-        <WelcomeScreen.Center.Logo />
+        <WelcomeScreen.Center.Logo>
+          <DyldrawWelcomeLogo />
+        </WelcomeScreen.Center.Logo>
         <WelcomeScreen.Center.Heading>
           {headingContent}
         </WelcomeScreen.Center.Heading>
@@ -64,16 +45,22 @@ export const AppWelcomeScreen: React.FC<{
               onSelect={() => props.onCollabDialogOpen()}
             />
           )}
-          {!isExcalidrawPlusSignedUser && (
-            <WelcomeScreen.Center.MenuItemLink
-              href={`${
-                import.meta.env.VITE_APP_PLUS_LP
-              }/plus?utm_source=excalidraw&utm_medium=app&utm_content=welcomeScreenGuest`}
+          {props.isAuthenticated ? (
+            <WelcomeScreen.Center.MenuItem
+              onSelect={props.onCloudLoad}
               shortcut={null}
               icon={loginIcon}
             >
-              Sign up
-            </WelcomeScreen.Center.MenuItemLink>
+              Load from Dyldraw Cloud
+            </WelcomeScreen.Center.MenuItem>
+          ) : (
+            <WelcomeScreen.Center.MenuItem
+              onSelect={props.onAuthDialogOpen}
+              shortcut={null}
+              icon={loginIcon}
+            >
+              Sign in
+            </WelcomeScreen.Center.MenuItem>
           )}
         </WelcomeScreen.Center.Menu>
       </WelcomeScreen.Center>

@@ -11,14 +11,19 @@ const getDarkThemeMediaQuery = (): MediaQueryList | undefined =>
 
 export const useHandleAppTheme = () => {
   const [appTheme, setAppTheme] = useState<Theme | "system">(() => {
-    return (
-      (localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_THEME) as
-        | Theme
-        | "system"
-        | null) || THEME.LIGHT
-    );
+    const storedTheme = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_THEME);
+    if (
+      storedTheme === THEME.LIGHT ||
+      storedTheme === THEME.DARK ||
+      storedTheme === "system"
+    ) {
+      return storedTheme;
+    }
+    return "system";
   });
-  const [editorTheme, setEditorTheme] = useState<Theme>(THEME.LIGHT);
+  const [editorTheme, setEditorTheme] = useState<Theme>(() =>
+    getDarkThemeMediaQuery()?.matches ? THEME.DARK : THEME.LIGHT,
+  );
 
   useEffect(() => {
     const mediaQuery = getDarkThemeMediaQuery();

@@ -39,13 +39,8 @@ import { t } from "@excalidraw/excalidraw/i18n";
 
 import {
   GithubIcon,
-  XBrandIcon,
-  DiscordIcon,
-  ExcalLogo,
   usersIcon,
-  exportToPlus,
   share,
-  youtubeIcon,
 } from "@excalidraw/excalidraw/components/icons";
 import { isElementLink } from "@excalidraw/element";
 import {
@@ -88,7 +83,6 @@ import {
 } from "./app-jotai";
 import {
   FIREBASE_STORAGE_PREFIXES,
-  isExcalidrawPlusSignedUser,
   STORAGE_KEYS,
   SYNC_BROWSER_TABS_TIMEOUT,
 } from "./app_constants";
@@ -100,10 +94,8 @@ import Collab, {
 import { AppFooter } from "./components/AppFooter";
 import { AppMainMenu } from "./components/AppMainMenu";
 import { AppWelcomeScreen } from "./components/AppWelcomeScreen";
-import {
-  ExportToExcalidrawPlus,
-  exportToExcalidrawPlus,
-} from "./components/ExportToExcalidrawPlus";
+import { DyldrawAuthDialog } from "./components/DyldrawAuthDialog";
+import { DyldrawLogoIcon } from "./components/DyldrawLogo";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 
 import {
@@ -127,6 +119,15 @@ import {
   localStorageQuotaExceededAtom,
 } from "./data/LocalData";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
+import {
+  loadSceneFromDyldrawCloud,
+  saveSceneToDyldrawCloud,
+  signInToDyldrawWithEmail,
+  signInToDyldrawWithGoogle,
+  signOutFromDyldraw,
+  signUpToDyldrawWithEmail,
+  subscribeToDyldrawAuth,
+} from "./data/dyldrawCloud";
 import { ShareDialog, shareDialogStateAtom } from "./share/ShareDialog";
 import CollabError, { collabErrorIndicatorAtom } from "./collab/CollabError";
 import { useHandleAppTheme } from "./useHandleAppTheme";
@@ -138,14 +139,13 @@ import DebugCanvas, {
   loadSavedDebugState,
 } from "./components/DebugCanvas";
 import { AIComponents } from "./components/AI";
-import { ExcalidrawPlusIframeExport } from "./ExcalidrawPlusIframeExport";
 
 import "./index.scss";
 
-import { ExcalidrawPlusPromoBanner } from "./components/ExcalidrawPlusPromoBanner";
 import { AppSidebar } from "./components/AppSidebar";
 
 import type { CollabAPI } from "./collab/Collab";
+import type { User } from "firebase/auth";
 
 polyfill();
 
@@ -209,6 +209,25 @@ const shareableLinkConfirmDialog = {
   actionLabel: t("overwriteConfirm.modal.shareableLink.button"),
   color: "danger",
 } as const;
+
+const getDyldrawAuthErrorMessage = (error: any) => {
+  const code = error?.code as string | undefined;
+  if (code === "auth/popup-closed-by-user") {
+    return "Google sign-in was cancelled.";
+  }
+  if (code === "auth/invalid-credential") {
+    return "Invalid email or password.";
+  }
+  if (code === "auth/email-already-in-use") {
+    return "This email already has an account. Try signing in instead.";
+  }
+  if (code === "auth/weak-password") {
+    return "Password is too weak. Use at least 6 characters.";
+  }
+  return error?.message || "Authentication failed. Please try again.";
+};
+
+const DYLDRAW_FIRST_LOGIN_THEME_KEY_PREFIX = "dyldraw-first-login-theme-v1";
 
 const initializeScene = async (opts: {
   collabAPI: CollabAPI | null;
@@ -418,6 +437,70 @@ const ExcalidrawWrapper = () => {
 
   const [, forceRefresh] = useState(false);
 
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
+  const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
+  const [isCloudActionInProgress, setIsCloudActionInProgress] = useState(false);
+  const [cloudSyncLabel, setCloudSyncLabel] = useState<string | null>(null);
+
+  const authUserRef = useRef<User | null>(null);
+  const loadedCloudSceneForUidRef = useRef<string | null>(null);
+
+  const cloudAutosaveRef = useRef(
+    debounce(
+      async ({
+        uid,
+        elements,
+        appState,
+        files,
+      }: {
+        uid: string;
+        elements: readonly OrderedExcalidrawElement[];
+        appState: AppState;
+        files: BinaryFiles;
+      }) => {
+        try {
+          await saveSceneToDyldrawCloud({ uid, elements, appState, files });
+          setCloudSyncLabel("Dyldraw Cloud: synced");
+        } catch (error: any) {
+          console.error(error);
+          setCloudSyncLabel("Dyldraw Cloud: sync failed");
+        }
+      },
+      3000,
+    ),
+  );
+
+  useEffect(() => {
+    authUserRef.current = authUser;
+  }, [authUser]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDyldrawAuth((user) => {
+      setAuthUser(user);
+      setAuthErrorMessage(null);
+      if (user) {
+        try {
+          const firstLoginThemeKey = `${DYLDRAW_FIRST_LOGIN_THEME_KEY_PREFIX}:${user.uid}`;
+          if (!localStorage.getItem(firstLoginThemeKey)) {
+            setAppTheme("system");
+            localStorage.setItem(firstLoginThemeKey, "1");
+          }
+        } catch (error: any) {
+          console.error(error);
+        }
+      }
+      if (!user) {
+        loadedCloudSceneForUidRef.current = null;
+        setCloudSyncLabel(null);
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [setAppTheme]);
+
   useEffect(() => {
     if (isDevEnv()) {
       const debugState = loadSavedDebugState();
@@ -432,6 +515,170 @@ const ExcalidrawWrapper = () => {
       forceRefresh((prev) => !prev);
     }
   }, [excalidrawAPI]);
+
+  const onCloudSave = useCallback(
+    async (opts: { silent?: boolean } = {}) => {
+      const user = authUserRef.current;
+      if (!user) {
+        setIsAuthDialogOpen(true);
+        return;
+      }
+      if (!excalidrawAPI) {
+        return;
+      }
+      setIsCloudActionInProgress(true);
+      try {
+        await saveSceneToDyldrawCloud({
+          uid: user.uid,
+          elements: excalidrawAPI.getSceneElementsIncludingDeleted(),
+          appState: excalidrawAPI.getAppState(),
+          files: excalidrawAPI.getFiles(),
+        });
+        setCloudSyncLabel("Dyldraw Cloud: saved");
+        if (!opts.silent) {
+          excalidrawAPI.setToast({ message: "Saved to Dyldraw Cloud" });
+        }
+      } catch (error: any) {
+        console.error(error);
+        setCloudSyncLabel("Dyldraw Cloud: save failed");
+        if (!opts.silent) {
+          excalidrawAPI.setToast({ message: "Could not save to Dyldraw Cloud" });
+        }
+      } finally {
+        setIsCloudActionInProgress(false);
+      }
+    },
+    [excalidrawAPI],
+  );
+
+  const onCloudLoad = useCallback(async () => {
+    const user = authUserRef.current;
+    if (!user) {
+      setIsAuthDialogOpen(true);
+      return;
+    }
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    setIsCloudActionInProgress(true);
+    try {
+      const scene = await loadSceneFromDyldrawCloud(user.uid);
+      if (!scene) {
+        setCloudSyncLabel("Dyldraw Cloud: no saved scene yet");
+        excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
+        return;
+      }
+
+      const hasLocalContent = excalidrawAPI
+        .getSceneElements()
+        .some((element) => !element.isDeleted);
+      if (
+        hasLocalContent &&
+        !window.confirm(
+          "Replace current canvas with your latest Dyldraw Cloud scene?",
+        )
+      ) {
+        return;
+      }
+
+      excalidrawAPI.updateScene({
+        elements: restoreElements(scene.elements, null, {
+          repairBindings: true,
+          deleteInvisibleElements: true,
+        }),
+        appState: restoreAppState(scene.appState, excalidrawAPI.getAppState()),
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+      if (scene.files) {
+        excalidrawAPI.addFiles(Object.values(scene.files));
+      }
+      setCloudSyncLabel("Dyldraw Cloud: loaded");
+      excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
+    } catch (error: any) {
+      console.error(error);
+      setCloudSyncLabel("Dyldraw Cloud: load failed");
+      excalidrawAPI.setToast({ message: "Could not load from Dyldraw Cloud" });
+    } finally {
+      setIsCloudActionInProgress(false);
+    }
+  }, [excalidrawAPI]);
+
+  const onSignOut = useCallback(async () => {
+    setIsCloudActionInProgress(true);
+    try {
+      cloudAutosaveRef.current.flush();
+      await signOutFromDyldraw();
+      setCloudSyncLabel("Signed out");
+    } catch (error: any) {
+      console.error(error);
+      setCloudSyncLabel("Could not sign out");
+    } finally {
+      setIsCloudActionInProgress(false);
+    }
+  }, []);
+
+  const onSignInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      setIsAuthSubmitting(true);
+      setAuthErrorMessage(null);
+      try {
+        await signInToDyldrawWithEmail(email, password);
+        setIsAuthDialogOpen(false);
+      } catch (error: any) {
+        setAuthErrorMessage(getDyldrawAuthErrorMessage(error));
+      } finally {
+        setIsAuthSubmitting(false);
+      }
+    },
+    [],
+  );
+
+  const onSignUpWithEmail = useCallback(
+    async (email: string, password: string) => {
+      setIsAuthSubmitting(true);
+      setAuthErrorMessage(null);
+      try {
+        await signUpToDyldrawWithEmail(email, password);
+        setIsAuthDialogOpen(false);
+      } catch (error: any) {
+        setAuthErrorMessage(getDyldrawAuthErrorMessage(error));
+      } finally {
+        setIsAuthSubmitting(false);
+      }
+    },
+    [],
+  );
+
+  const onSignInWithGoogle = useCallback(async () => {
+    setIsAuthSubmitting(true);
+    setAuthErrorMessage(null);
+    try {
+      await signInToDyldrawWithGoogle();
+      setIsAuthDialogOpen(false);
+    } catch (error: any) {
+      setAuthErrorMessage(getDyldrawAuthErrorMessage(error));
+    } finally {
+      setIsAuthSubmitting(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!authUser || !excalidrawAPI) {
+      return;
+    }
+    if (loadedCloudSceneForUidRef.current === authUser.uid) {
+      return;
+    }
+    loadedCloudSceneForUidRef.current = authUser.uid;
+    onCloudLoad();
+  }, [authUser, excalidrawAPI, onCloudLoad]);
+
+  useEffect(() => {
+    return () => {
+      cloudAutosaveRef.current.cancel();
+    };
+  }, []);
 
   useEffect(() => {
     if (!excalidrawAPI || (!isCollabDisabled && !collabAPI)) {
@@ -598,11 +845,13 @@ const ExcalidrawWrapper = () => {
 
     const onUnload = () => {
       LocalData.flushSave();
+      cloudAutosaveRef.current.flush();
     };
 
     const visibilityChange = (event: FocusEvent | Event) => {
       if (event.type === EVENT.BLUR || document.hidden) {
         LocalData.flushSave();
+        cloudAutosaveRef.current.flush();
       }
       if (
         event.type === EVENT.VISIBILITY_CHANGE ||
@@ -633,6 +882,7 @@ const ExcalidrawWrapper = () => {
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
       LocalData.flushSave();
+      cloudAutosaveRef.current.flush();
 
       if (
         excalidrawAPI &&
@@ -693,6 +943,16 @@ const ExcalidrawWrapper = () => {
             });
           }
         }
+      });
+    }
+
+    const user = authUserRef.current;
+    if (user && !collabAPI?.isCollaborating()) {
+      cloudAutosaveRef.current({
+        uid: user.uid,
+        elements,
+        appState,
+        files,
       });
     }
 
@@ -792,44 +1052,49 @@ const ExcalidrawWrapper = () => {
     );
   }
 
-  const ExcalidrawPlusCommand = {
-    label: "Excalidraw+",
+  const DyldrawCommand = {
+    label: "Dyldraw",
     category: DEFAULT_CATEGORIES.links,
     predicate: true,
-    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
-    keywords: ["plus", "cloud", "server"],
+    icon: <DyldrawLogoIcon size={14} />,
+    keywords: ["dyldraw", "home", "cloud", "whiteboard"],
     perform: () => {
-      window.open(
-        `${
-          import.meta.env.VITE_APP_PLUS_LP
-        }/plus?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
-        "_blank",
-      );
+      window.open("https://dyldraw.vercel.app", "_blank", "noopener noreferrer");
     },
   };
-  const ExcalidrawPlusAppCommand = {
-    label: "Sign up",
-    category: DEFAULT_CATEGORIES.links,
+  const DyldrawAuthCommand = {
+    label: authUser ? "Sign out of Dyldraw" : "Sign in to Dyldraw",
+    category: DEFAULT_CATEGORIES.app,
     predicate: true,
-    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
+    icon: <DyldrawLogoIcon size={14} />,
     keywords: [
-      "excalidraw",
-      "plus",
+      "dyldraw",
       "cloud",
       "server",
       "signin",
       "login",
       "signup",
+      "logout",
     ],
     perform: () => {
-      window.open(
-        `${
-          import.meta.env.VITE_APP_PLUS_APP
-        }?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
-        "_blank",
-      );
+      if (authUser) {
+        onSignOut();
+      } else {
+        setIsAuthDialogOpen(true);
+      }
     },
   };
+  const DyldrawCloudSaveCommand = {
+    label: "Save to Dyldraw Cloud",
+    category: DEFAULT_CATEGORIES.app,
+    predicate: () => !!authUser,
+    icon: <DyldrawLogoIcon size={14} />,
+    keywords: ["save", "cloud", "backup", "dyldraw"],
+    perform: () => onCloudSave(),
+  };
+  const signedInLabel = authUser
+    ? authUser.displayName || authUser.email || `Signed in as ${authUser.uid}`
+    : null;
 
   return (
     <div
@@ -849,30 +1114,6 @@ const ExcalidrawWrapper = () => {
             toggleTheme: true,
             export: {
               onExportToBackend,
-              renderCustomUI: excalidrawAPI
-                ? (elements, appState, files) => {
-                    return (
-                      <ExportToExcalidrawPlus
-                        elements={elements}
-                        appState={appState}
-                        files={files}
-                        name={excalidrawAPI.getName()}
-                        onError={(error) => {
-                          excalidrawAPI?.updateScene({
-                            appState: {
-                              errorMessage: error.message,
-                            },
-                          });
-                        }}
-                        onSuccess={() => {
-                          excalidrawAPI.updateScene({
-                            appState: { openDialog: null },
-                          });
-                        }}
-                      />
-                    );
-                  }
-                : undefined,
             },
           },
         }}
@@ -889,12 +1130,6 @@ const ExcalidrawWrapper = () => {
 
           return (
             <div className="excalidraw-ui-top-right">
-              {excalidrawAPI?.getEditorInterface().formFactor === "desktop" && (
-                <ExcalidrawPlusPromoBanner
-                  isSignedIn={isExcalidrawPlusSignedUser}
-                />
-              )}
-
               {collabError.message && <CollabError collabError={collabError} />}
               <LiveCollaborationTrigger
                 isCollaborating={isCollaborating}
@@ -915,6 +1150,14 @@ const ExcalidrawWrapper = () => {
       >
         <AppMainMenu
           onCollabDialogOpen={onCollabDialogOpen}
+          onAuthDialogOpen={() => setIsAuthDialogOpen(true)}
+          onCloudSave={() => onCloudSave()}
+          onCloudLoad={onCloudLoad}
+          onSignOut={onSignOut}
+          isAuthenticated={!!authUser}
+          signedInLabel={signedInLabel}
+          cloudSyncLabel={cloudSyncLabel}
+          isCloudActionInProgress={isCloudActionInProgress}
           isCollaborating={isCollaborating}
           isCollabEnabled={!isCollabDisabled}
           theme={appTheme}
@@ -923,27 +1166,14 @@ const ExcalidrawWrapper = () => {
         />
         <AppWelcomeScreen
           onCollabDialogOpen={onCollabDialogOpen}
+          onAuthDialogOpen={() => setIsAuthDialogOpen(true)}
+          onCloudLoad={onCloudLoad}
+          isAuthenticated={!!authUser}
           isCollabEnabled={!isCollabDisabled}
         />
         <OverwriteConfirmDialog>
           <OverwriteConfirmDialog.Actions.ExportToImage />
           <OverwriteConfirmDialog.Actions.SaveToDisk />
-          {excalidrawAPI && (
-            <OverwriteConfirmDialog.Action
-              title={t("overwriteConfirm.action.excalidrawPlus.title")}
-              actionLabel={t("overwriteConfirm.action.excalidrawPlus.button")}
-              onClick={() => {
-                exportToExcalidrawPlus(
-                  excalidrawAPI.getSceneElements(),
-                  excalidrawAPI.getAppState(),
-                  excalidrawAPI.getFiles(),
-                  excalidrawAPI.getName(),
-                );
-              }}
-            >
-              {t("overwriteConfirm.action.excalidrawPlus.description")}
-            </OverwriteConfirmDialog.Action>
-          )}
         </OverwriteConfirmDialog>
         <AppFooter onChange={() => excalidrawAPI?.refresh()} />
         {excalidrawAPI && <AIComponents excalidrawAPI={excalidrawAPI} />}
@@ -994,6 +1224,18 @@ const ExcalidrawWrapper = () => {
             {errorMessage}
           </ErrorDialog>
         )}
+        <DyldrawAuthDialog
+          isOpen={isAuthDialogOpen}
+          onClose={() => {
+            setIsAuthDialogOpen(false);
+            setAuthErrorMessage(null);
+          }}
+          onSignInWithEmail={onSignInWithEmail}
+          onSignUpWithEmail={onSignUpWithEmail}
+          onSignInWithGoogle={onSignInWithGoogle}
+          isSubmitting={isAuthSubmitting}
+          errorMessage={authErrorMessage}
+        />
 
         <CommandPalette
           customCommandPaletteItems={[
@@ -1074,91 +1316,15 @@ const ExcalidrawWrapper = () => {
               ],
               perform: () => {
                 window.open(
-                  "https://github.com/excalidraw/excalidraw",
+                  "https://github.com/dylandersen/dylDraw",
                   "_blank",
                   "noopener noreferrer",
                 );
               },
             },
-            {
-              label: t("labels.followUs"),
-              icon: XBrandIcon,
-              category: DEFAULT_CATEGORIES.links,
-              predicate: true,
-              keywords: ["twitter", "contact", "social", "community"],
-              perform: () => {
-                window.open(
-                  "https://x.com/excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            {
-              label: t("labels.discordChat"),
-              category: DEFAULT_CATEGORIES.links,
-              predicate: true,
-              icon: DiscordIcon,
-              keywords: [
-                "chat",
-                "talk",
-                "contact",
-                "bugs",
-                "requests",
-                "report",
-                "feedback",
-                "suggestions",
-                "social",
-                "community",
-              ],
-              perform: () => {
-                window.open(
-                  "https://discord.gg/UexuTaE",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            {
-              label: "YouTube",
-              icon: youtubeIcon,
-              category: DEFAULT_CATEGORIES.links,
-              predicate: true,
-              keywords: ["features", "tutorials", "howto", "help", "community"],
-              perform: () => {
-                window.open(
-                  "https://youtube.com/@excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            ...(isExcalidrawPlusSignedUser
-              ? [
-                  {
-                    ...ExcalidrawPlusAppCommand,
-                    label: "Sign in / Go to Excalidraw+",
-                  },
-                ]
-              : [ExcalidrawPlusCommand, ExcalidrawPlusAppCommand]),
-
-            {
-              label: t("overwriteConfirm.action.excalidrawPlus.button"),
-              category: DEFAULT_CATEGORIES.export,
-              icon: exportToPlus,
-              predicate: true,
-              keywords: ["plus", "export", "save", "backup"],
-              perform: () => {
-                if (excalidrawAPI) {
-                  exportToExcalidrawPlus(
-                    excalidrawAPI.getSceneElements(),
-                    excalidrawAPI.getAppState(),
-                    excalidrawAPI.getFiles(),
-                    excalidrawAPI.getName(),
-                  );
-                }
-              },
-            },
+            DyldrawCommand,
+            DyldrawAuthCommand,
+            DyldrawCloudSaveCommand,
             {
               ...CommandPalette.defaultItems.toggleTheme,
               perform: () => {
@@ -1197,12 +1363,6 @@ const ExcalidrawWrapper = () => {
 };
 
 const ExcalidrawApp = () => {
-  const isCloudExportWindow =
-    window.location.pathname === "/excalidraw-plus-export";
-  if (isCloudExportWindow) {
-    return <ExcalidrawPlusIframeExport />;
-  }
-
   return (
     <TopErrorBoundary>
       <Provider store={appJotaiStore}>

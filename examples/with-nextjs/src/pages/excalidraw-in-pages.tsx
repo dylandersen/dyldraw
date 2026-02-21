@@ -1,11 +1,10 @@
 import dynamic from "next/dynamic";
-
-import "../common.scss";
+import Script from "next/script";
 
 // Since client components get prerenderd on server as well hence importing the excalidraw stuff dynamically
 // with ssr false
-const Excalidraw = dynamic(
-  async () => (await import("../excalidrawWrapper")).default,
+const DyldrawApp = dynamic(
+  async () => (await import("../components/DyldrawApp")).default,
   {
     ssr: false,
   },
@@ -14,10 +13,11 @@ const Excalidraw = dynamic(
 export default function Page() {
   return (
     <>
-      <a href="/">Switch to App router</a>
-      <h1 className="page-title">Pages Router</h1>
+      <Script id="load-env-variables" strategy="afterInteractive">
+        {`window["EXCALIDRAW_ASSET_PATH"] = window.origin;`}
+      </Script>
       {/* @ts-expect-error - https://github.com/vercel/next.js/issues/42292 */}
-      <Excalidraw />
+      <DyldrawApp />
     </>
   );
 }

@@ -1,0 +1,9 @@
+.git
+node_modules
+.next
+build
+coverage
+firebase
+*.log
+*.tgz
+.DS_Store

@@ -1,17 +1,16 @@
 {
-  "name": "with-nextjs",
+  "name": "dyldraw",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build:packages": "yarn --cwd ../../ build:packages",
-    "build:workspace": "yarn build:packages && yarn copy:assets",
-    "copy:assets": "cp -r ../../packages/excalidraw/dist/prod/fonts ./public",
-    "dev": "yarn build:workspace && next dev -p 3005",
-    "build": "yarn build:workspace && next build",
+    "dev": "next dev -p 3005",
+    "build": "next build",
     "start": "next start -p 3006",
-    "lint": "next lint"
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "*",
+    "firebase": "11.3.1",
     "next": "14.1",
     "react": "19.0.0",
     "react-dom": "19.0.0"
@@ -20,6 +19,8 @@
     "@types/node": "^20",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.1.4",
     "path2d-polyfill": "2.0.1",
     "typescript": "^5"
   }

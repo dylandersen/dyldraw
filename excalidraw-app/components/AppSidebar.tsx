@@ -39,14 +39,10 @@ export const AppSidebar = () => {
             }}
           />
           <div className="app-sidebar-promo-text">
-            Make comments with Excalidraw+
+            Make comments with Dyldraw Pro
           </div>
-          <LinkButton
-            href={`${
-              import.meta.env.VITE_APP_PLUS_LP
-            }/plus?utm_source=excalidraw&utm_medium=app&utm_content=comments_promo#excalidraw-redirect`}
-          >
-            Sign up now
+          <LinkButton href="https://dyldraw.vercel.app">
+            Dyldraw Cloud
           </LinkButton>
         </div>
       </Sidebar.Tab>
@@ -63,14 +59,10 @@ export const AppSidebar = () => {
             }}
           />
           <div className="app-sidebar-promo-text">
-            Create presentations with Excalidraw+
+            Create presentations with Dyldraw Pro
           </div>
-          <LinkButton
-            href={`${
-              import.meta.env.VITE_APP_PLUS_LP
-            }/plus?utm_source=excalidraw&utm_medium=app&utm_content=presentations_promo#excalidraw-redirect`}
-          >
-            Sign up now
+          <LinkButton href="https://dyldraw.vercel.app">
+            Dyldraw Cloud
           </LinkButton>
         </div>
       </Sidebar.Tab>

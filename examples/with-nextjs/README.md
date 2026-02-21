@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Dyldraw (Next.js)
 
-## Getting Started
+Dyldraw is a Next.js app that embeds Excalidraw with:
+- username/password sign in
+- per-user saved drawings
+- Vercel-ready deployment
 
-First, run the development server:
+## Stack
+- Next.js (App Router)
+- Excalidraw
+- Firebase Authentication
+- Cloud Firestore
+
+## Local setup
+
+1. Create a Firebase project.
+2. In Firebase Console, enable:
+   - Authentication -> `Email/Password`
+   - Firestore Database (production mode)
+3. Copy env template and fill values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3005) with your browser to see the result.
+4. Install and run:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm --dir examples/with-nextjs install
+pnpm --dir examples/with-nextjs dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+5. Open [http://localhost:3005](http://localhost:3005).
 
-## Learn More
+## Username/password note
 
-To learn more about Next.js, take a look at the following resources:
+Firebase Auth uses email/password under the hood.  
+Dyldraw maps `username` to an internal email (`username@dyldraw.local`) so users can log in with only username + password in the UI.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Firestore rules (required)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Use rules like this so users can access only their own scenes:
+
+```txt
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/scenes/{sceneId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /profiles/{profileId} {
+      allow read, write: if request.auth != null && request.auth.uid == profileId;
+    }
+  }
+}
+```
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push your Dyldraw fork to GitHub.
+2. In Vercel, import the repo and set `Root Directory` to `examples/with-nextjs`.
+3. Add the same Firebase env vars from `.env.local` in Vercel project settings.
+4. Deploy.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Current limitations
+
+- Scene storage currently uses Firestore document size limits. Very large scenes can fail to save.
+- This first version stores Excalidraw scene JSON (no custom backend yet).
