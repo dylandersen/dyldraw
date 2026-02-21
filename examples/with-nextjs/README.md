@@ -1,11 +1,13 @@
 # Dyldraw (Next.js)
 
 Dyldraw is a Next.js app that embeds Excalidraw with:
+
 - username/password sign in
 - per-user saved drawings
 - Vercel-ready deployment
 
 ## Stack
+
 - Next.js (App Router)
 - Excalidraw
 - Firebase Authentication

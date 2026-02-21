@@ -32,8 +32,11 @@ body {
 body {
   font-family: var(--font-display);
   color: var(--color-text);
-  background:
-    radial-gradient(1200px 700px at 0% 0%, #1e3a8a 0%, transparent 60%),
+  background: radial-gradient(
+      1200px 700px at 0% 0%,
+      #1e3a8a 0%,
+      transparent 60%
+    ),
     radial-gradient(1000px 600px at 100% 100%, #0c4a6e 0%, transparent 55%),
     linear-gradient(145deg, var(--color-bg) 0%, var(--color-bg-accent) 100%);
 }

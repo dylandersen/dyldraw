@@ -34,12 +34,21 @@ export const DyldrawAuthDialog = ({
   const emailReady = email.trim().length > 0 && password.length > 0;
 
   return (
-    <Dialog size="small" onCloseRequest={onClose} title="Sign in to Dyldraw">
+    <Dialog
+      size="small"
+      onCloseRequest={onClose}
+      title={
+        <span className="dyldraw-auth-dialog__title">
+          <span className="dyldraw-auth-dialog__title-text">
+            Sign in to Dyldraw
+          </span>
+          <span className="dyldraw-auth-dialog__title-logo">
+            <DyldrawLogoIcon size={26} rounded />
+          </span>
+        </span>
+      }
+    >
       <div className="dyldraw-auth-dialog">
-        <div className="dyldraw-auth-dialog__brand">
-          <DyldrawLogoIcon size={20} rounded />
-          <span>Dyldraw Cloud</span>
-        </div>
         <p className="dyldraw-auth-dialog__copy">
           Use your account to save your canvas to Dyldraw Cloud.
         </p>
@@ -78,15 +87,15 @@ export const DyldrawAuthDialog = ({
         <div className="dyldraw-auth-dialog__actions">
           <DialogActionButton
             label="Sign in"
+            className="dyldraw-auth-dialog__button dyldraw-auth-dialog__button--primary"
             actionType="primary"
             isLoading={isSubmitting}
             disabled={!emailReady || isSubmitting}
             onClick={() => onSignInWithEmail(email.trim(), password)}
-          >
-            <DyldrawLogoIcon size={16} rounded />
-          </DialogActionButton>
+          />
           <DialogActionButton
             label="Create account"
+            className="dyldraw-auth-dialog__button dyldraw-auth-dialog__button--secondary"
             isLoading={isSubmitting}
             disabled={!emailReady || isSubmitting}
             onClick={() => onSignUpWithEmail(email.trim(), password)}
@@ -95,6 +104,7 @@ export const DyldrawAuthDialog = ({
         <div className="dyldraw-auth-dialog__divider">or</div>
         <DialogActionButton
           label="Continue with Google"
+          className="dyldraw-auth-dialog__button dyldraw-auth-dialog__button--google"
           isLoading={isSubmitting}
           disabled={isSubmitting}
           onClick={() => onSignInWithGoogle()}

@@ -18,6 +18,58 @@ require("fake-indexeddb/auto");
 
 polyfill();
 
+const createStorageMock = (): Storage => {
+  let store = new Map<string, string>();
+
+  return {
+    get length() {
+      return store.size;
+    },
+    clear() {
+      store = new Map<string, string>();
+    },
+    getItem(key: string) {
+      return store.has(key) ? store.get(key)! : null;
+    },
+    key(index: number) {
+      return Array.from(store.keys())[index] ?? null;
+    },
+    removeItem(key: string) {
+      store.delete(key);
+    },
+    setItem(key: string, value: string) {
+      store.set(String(key), String(value));
+    },
+  };
+};
+
+const ensureStorageApi = (property: "localStorage" | "sessionStorage") => {
+  const storage = window[property];
+  if (
+    !storage ||
+    typeof storage.getItem !== "function" ||
+    typeof storage.setItem !== "function" ||
+    typeof storage.removeItem !== "function" ||
+    typeof storage.clear !== "function" ||
+    typeof storage.key !== "function"
+  ) {
+    const storageMock = createStorageMock();
+    Object.defineProperty(window, property, {
+      configurable: true,
+      writable: true,
+      value: storageMock,
+    });
+    Object.defineProperty(globalThis, property, {
+      configurable: true,
+      writable: true,
+      value: storageMock,
+    });
+  }
+};
+
+ensureStorageApi("localStorage");
+ensureStorageApi("sessionStorage");
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({

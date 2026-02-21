@@ -12,6 +12,7 @@ import { isDevEnv } from "@excalidraw/common";
 import type { Theme } from "@excalidraw/element/types";
 
 import { LanguageList } from "../app-language/LanguageList";
+
 import { DyldrawLogoIcon } from "./DyldrawLogo";
 
 import { saveDebugState } from "./DebugCanvas";

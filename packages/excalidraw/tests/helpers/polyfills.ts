@@ -57,7 +57,7 @@ class DataTransferItemList extends Array<DataTransferItem> {
   }
 
   clear(): void {
-    this.clear();
+    this.splice(0, this.length);
   }
 }
 

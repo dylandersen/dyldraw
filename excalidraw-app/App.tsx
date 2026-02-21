@@ -544,7 +544,9 @@ const ExcalidrawWrapper = () => {
         console.error(error);
         setCloudSyncLabel("Dyldraw Cloud: save failed");
         if (!opts.silent) {
-          excalidrawAPI.setToast({ message: "Could not save to Dyldraw Cloud" });
+          excalidrawAPI.setToast({
+            message: "Could not save to Dyldraw Cloud",
+          });
         }
       } finally {
         setIsCloudActionInProgress(false);
@@ -560,59 +562,64 @@ const ExcalidrawWrapper = () => {
         setIsAuthDialogOpen(true);
         return;
       }
-    if (!excalidrawAPI) {
-      return;
-    }
+      if (!excalidrawAPI) {
+        return;
+      }
 
-    setIsCloudActionInProgress(true);
-    try {
-      const scene = await loadSceneFromDyldrawCloud(user.uid);
-      if (!scene) {
-        setCloudSyncLabel("Dyldraw Cloud: no saved scene yet");
-        if (!opts.silent) {
-          excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
+      setIsCloudActionInProgress(true);
+      try {
+        const scene = await loadSceneFromDyldrawCloud(user.uid);
+        if (!scene) {
+          setCloudSyncLabel("Dyldraw Cloud: no saved scene yet");
+          if (!opts.silent) {
+            excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
+          }
+          return;
         }
-        return;
-      }
 
-      const hasLocalContent = excalidrawAPI
-        .getSceneElements()
-        .some((element) => !element.isDeleted);
-      if (
-        hasLocalContent &&
-        !window.confirm(
-          "Replace current canvas with your latest Dyldraw Cloud scene?",
-        )
-      ) {
-        return;
-      }
+        const hasLocalContent = excalidrawAPI
+          .getSceneElements()
+          .some((element) => !element.isDeleted);
+        if (
+          hasLocalContent &&
+          !window.confirm(
+            "Replace current canvas with your latest Dyldraw Cloud scene?",
+          )
+        ) {
+          return;
+        }
 
-      excalidrawAPI.updateScene({
-        elements: restoreElements(scene.elements, null, {
-          repairBindings: true,
-          deleteInvisibleElements: true,
-        }),
-        appState: restoreAppState(scene.appState, excalidrawAPI.getAppState()),
-        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-      });
-      if (scene.files) {
-        excalidrawAPI.addFiles(Object.values(scene.files));
+        excalidrawAPI.updateScene({
+          elements: restoreElements(scene.elements, null, {
+            repairBindings: true,
+            deleteInvisibleElements: true,
+          }),
+          appState: restoreAppState(
+            scene.appState,
+            excalidrawAPI.getAppState(),
+          ),
+          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+        if (scene.files) {
+          excalidrawAPI.addFiles(Object.values(scene.files));
+        }
+        setCloudSyncLabel("Dyldraw Cloud: loaded");
+        if (!opts.silent) {
+          excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
+        }
+      } catch (error: any) {
+        if (!opts.silent) {
+          console.error(error);
+          setCloudSyncLabel("Dyldraw Cloud: load failed");
+          excalidrawAPI.setToast({
+            message: "Could not load from Dyldraw Cloud",
+          });
+        } else {
+          setCloudSyncLabel(null);
+        }
+      } finally {
+        setIsCloudActionInProgress(false);
       }
-      setCloudSyncLabel("Dyldraw Cloud: loaded");
-      if (!opts.silent) {
-        excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
-      }
-    } catch (error: any) {
-      if (!opts.silent) {
-        console.error(error);
-        setCloudSyncLabel("Dyldraw Cloud: load failed");
-        excalidrawAPI.setToast({ message: "Could not load from Dyldraw Cloud" });
-      } else {
-        setCloudSyncLabel(null);
-      }
-    } finally {
-      setIsCloudActionInProgress(false);
-    }
     },
     [excalidrawAPI],
   );
@@ -696,8 +703,9 @@ const ExcalidrawWrapper = () => {
   }, [authUser, excalidrawAPI, onCloudLoad]);
 
   useEffect(() => {
+    const cloudAutosave = cloudAutosaveRef.current;
     return () => {
-      cloudAutosaveRef.current.cancel();
+      cloudAutosave.cancel();
     };
   }, []);
 

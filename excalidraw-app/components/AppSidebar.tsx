@@ -41,9 +41,7 @@ export const AppSidebar = () => {
           <div className="app-sidebar-promo-text">
             Make comments with Dyldraw Pro
           </div>
-          <LinkButton href="https://dyldraw.com">
-            Dyldraw Cloud
-          </LinkButton>
+          <LinkButton href="https://dyldraw.com">Dyldraw Cloud</LinkButton>
         </div>
       </Sidebar.Tab>
       <Sidebar.Tab tab="presentation" className="px-3">
@@ -61,9 +59,7 @@ export const AppSidebar = () => {
           <div className="app-sidebar-promo-text">
             Create presentations with Dyldraw Pro
           </div>
-          <LinkButton href="https://dyldraw.com">
-            Dyldraw Cloud
-          </LinkButton>
+          <LinkButton href="https://dyldraw.com">Dyldraw Cloud</LinkButton>
         </div>
       </Sidebar.Tab>
     </DefaultSidebar>
