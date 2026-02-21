@@ -122,12 +122,14 @@ import {
 } from "./data/LocalData";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
 import {
+  getDyldrawCloudClientId,
   loadSceneFromDyldrawCloud,
   saveSceneToDyldrawCloud,
   signInToDyldrawWithEmail,
   signInToDyldrawWithGoogle,
   signOutFromDyldraw,
   signUpToDyldrawWithEmail,
+  subscribeToDyldrawSceneMetadata,
   subscribeToDyldrawAuth,
 } from "./data/dyldrawCloud";
 import { ShareDialog, shareDialogStateAtom } from "./share/ShareDialog";
@@ -448,6 +450,9 @@ const ExcalidrawWrapper = () => {
 
   const authUserRef = useRef<User | null>(null);
   const loadedCloudSceneForUidRef = useRef<string | null>(null);
+  const cloudAutoLoadInFlightRef = useRef(false);
+  const latestRemoteSceneUpdateRef = useRef<number | null>(null);
+  const dyldrawCloudClientIdRef = useRef(getDyldrawCloudClientId());
 
   const cloudAutosaveRef = useRef(
     debounce(
@@ -556,7 +561,7 @@ const ExcalidrawWrapper = () => {
   );
 
   const onCloudLoad = useCallback(
-    async (opts: { silent?: boolean } = {}) => {
+    async (opts: { silent?: boolean; forceReplace?: boolean } = {}) => {
       const user = authUserRef.current;
       if (!user) {
         setIsAuthDialogOpen(true);
@@ -582,6 +587,7 @@ const ExcalidrawWrapper = () => {
           .some((element) => !element.isDeleted);
         if (
           hasLocalContent &&
+          !opts.forceReplace &&
           !window.confirm(
             "Replace current canvas with your latest Dyldraw Cloud scene?",
           )
@@ -623,6 +629,37 @@ const ExcalidrawWrapper = () => {
     },
     [excalidrawAPI],
   );
+
+  useEffect(() => {
+    if (!authUser || !excalidrawAPI || collabAPI?.isCollaborating()) {
+      return;
+    }
+    return subscribeToDyldrawSceneMetadata(authUser.uid, async (meta) => {
+      if (!meta.updatedAtMs) {
+        return;
+      }
+      if (meta.updatedByClientId === dyldrawCloudClientIdRef.current) {
+        return;
+      }
+      if (
+        latestRemoteSceneUpdateRef.current &&
+        meta.updatedAtMs <= latestRemoteSceneUpdateRef.current
+      ) {
+        return;
+      }
+      latestRemoteSceneUpdateRef.current = meta.updatedAtMs;
+      if (cloudAutoLoadInFlightRef.current) {
+        return;
+      }
+      cloudAutoLoadInFlightRef.current = true;
+      try {
+        await onCloudLoad({ silent: true, forceReplace: true });
+        setCloudSyncLabel("Dyldraw: synced from another device");
+      } finally {
+        cloudAutoLoadInFlightRef.current = false;
+      }
+    });
+  }, [authUser, collabAPI, excalidrawAPI, onCloudLoad]);
 
   const onSignOut = useCallback(async () => {
     setIsCloudActionInProgress(true);

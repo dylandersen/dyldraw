@@ -8,7 +8,13 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { doc, getFirestore, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getFirestore,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import { getBlob, getStorage, ref, uploadString } from "firebase/storage";
 
 import { loadFromBlob } from "@excalidraw/excalidraw/data/blob";
@@ -26,6 +32,7 @@ import { getFirebaseConfig } from "./firebaseConfig";
 import type { User } from "firebase/auth";
 
 const FIREBASE_CONFIG = getFirebaseConfig();
+const DYLDRAW_CLOUD_CLIENT_ID_KEY = "dyldraw-cloud-client-id";
 
 const getFirebaseApp = () => {
   if (getApps().length) {
@@ -35,6 +42,25 @@ const getFirebaseApp = () => {
 };
 
 const userScenePath = (uid: string) => `users/${uid}/latest.excalidraw.json`;
+
+const createFallbackClientId = () =>
+  `dyldraw-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+export const getDyldrawCloudClientId = () => {
+  if (typeof window === "undefined") {
+    return createFallbackClientId();
+  }
+  const existing = window.localStorage.getItem(DYLDRAW_CLOUD_CLIENT_ID_KEY);
+  if (existing) {
+    return existing;
+  }
+  const clientId =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : createFallbackClientId();
+  window.localStorage.setItem(DYLDRAW_CLOUD_CLIENT_ID_KEY, clientId);
+  return clientId;
+};
 
 export const subscribeToDyldrawAuth = (
   listener: (user: User | null) => void,
@@ -81,6 +107,7 @@ export const saveSceneToDyldrawCloud = async ({
   appState: Partial<AppState>;
   files: BinaryFiles;
 }) => {
+  const clientId = getDyldrawCloudClientId();
   const sceneJson = serializeAsJSON(elements, appState, files, "database");
   const storage = getStorage(getFirebaseApp());
 
@@ -95,8 +122,35 @@ export const saveSceneToDyldrawCloud = async ({
     {
       updatedAt: serverTimestamp(),
       bytes: sceneJson.length,
+      updatedByClientId: clientId,
     },
     { merge: true },
+  );
+};
+
+export const subscribeToDyldrawSceneMetadata = (
+  uid: string,
+  listener: (payload: {
+    updatedAtMs: number | null;
+    updatedByClientId: string | null;
+  }) => void,
+) => {
+  const firestore = getFirestore(getFirebaseApp());
+  return onSnapshot(
+    doc(firestore, "users", uid, "private", "latestScene"),
+    (snap) => {
+      const data = snap.data();
+      const updatedAt = data?.updatedAt;
+      const updatedAtMs =
+        updatedAt && typeof updatedAt.toMillis === "function"
+          ? updatedAt.toMillis()
+          : null;
+      const updatedByClientId =
+        typeof data?.updatedByClientId === "string"
+          ? data.updatedByClientId
+          : null;
+      listener({ updatedAtMs, updatedByClientId });
+    },
   );
 };
 
