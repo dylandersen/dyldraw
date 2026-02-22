@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Dyldraw Whiteboard</title>
+    <title>Dyldraw | Free collaborative whiteboard with hand-drawn feel</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no"
@@ -10,6 +10,13 @@
     <meta name="referrer" content="origin" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#121212" />
+    <meta name="application-name" content="Dyldraw" />
+    <meta name="apple-mobile-web-app-title" content="Dyldraw" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="msapplication-TileColor" content="#121212" />
+    <meta name="msapplication-TileImage" content="https://dyldraw.com/dylDraw.png" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
 
     <!-- Primary Meta Tags -->
     <meta
@@ -20,38 +27,82 @@
       name="description"
       content="Dyldraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams with a hand-drawn feel."
     />
-    <meta name="image" content="/og-image-3.png" />
+    <meta name="image" content="https://dyldraw.com/dyldraw-preview.png" />
+    <meta itemprop="name" content="Dyldraw" />
+    <meta
+      itemprop="description"
+      content="Dyldraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams with a hand-drawn feel."
+    />
+    <meta itemprop="image" content="https://dyldraw.com/dyldraw-preview.png" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:site_name" content="Dyldraw" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://dyldraw.com" />
     <meta
       property="og:title"
       content="Dyldraw — Collaborative whiteboarding made easy"
     />
-    <meta property="og:image:alt" content="Dyldraw logo" />
     <meta
       property="og:description"
       content="Dyldraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams with a hand-drawn feel."
     />
-    <meta property="og:image" content="/og-image-3.png" />
+    <meta property="og:image" content="https://dyldraw.com/dyldraw-preview.png" />
+    <meta
+      property="og:image:url"
+      content="https://dyldraw.com/dyldraw-preview.png"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://dyldraw.com/dyldraw-preview.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="3338" />
+    <meta property="og:image:height" content="2506" />
+    <meta
+      property="og:image:alt"
+      content="Preview screenshot of the Dyldraw collaborative whiteboard interface."
+    />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:site" content="@dyldraw" />
-    <meta property="twitter:url" content="https://dyldraw.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@dyldraw" />
+    <meta name="twitter:creator" content="@dyldraw" />
+    <meta name="twitter:domain" content="dyldraw.com" />
+    <meta name="twitter:url" content="https://dyldraw.com" />
     <meta
-      property="twitter:title"
+      name="twitter:title"
       content="Dyldraw — Collaborative whiteboarding made easy"
     />
     <meta
-      property="twitter:description"
+      name="twitter:description"
       content="Dyldraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams with a hand-drawn feel."
     />
-    <meta property="twitter:image" content="/og-image-3.png" />
+    <meta
+      name="twitter:image"
+      content="https://dyldraw.com/dyldraw-preview.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Preview screenshot of the Dyldraw collaborative whiteboard interface."
+    />
 
     <link rel="canonical" href="https://dyldraw.com" />
+    <link rel="image_src" href="https://dyldraw.com/dyldraw-preview.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Dyldraw",
+        "url": "https://dyldraw.com",
+        "description": "Dyldraw is a virtual collaborative whiteboard tool that lets you easily sketch diagrams with a hand-drawn feel.",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "image": "https://dyldraw.com/dyldraw-preview.png",
+        "logo": "https://dyldraw.com/dylDraw.png"
+      }
+    </script>
 
     <!------------------------------------------------------------------------->
     <!--   to minimize white flash on load when user has dark mode enabled   -->
@@ -122,6 +173,8 @@
     <% } %>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 
