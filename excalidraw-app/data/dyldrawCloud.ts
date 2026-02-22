@@ -156,11 +156,13 @@ export const subscribeToDyldrawSceneMetadata = (
 
 export const loadSceneFromDyldrawCloud = async (
   uid: string,
+  localAppState: AppState | null = null,
+  localElements: readonly OrderedExcalidrawElement[] | null = null,
 ): Promise<ExcalidrawInitialDataState | null> => {
   const storage = getStorage(getFirebaseApp());
   try {
     const blob = await getBlob(ref(storage, userScenePath(uid)));
-    return loadFromBlob(blob, null, null);
+    return loadFromBlob(blob, localAppState, localElements);
   } catch (error: any) {
     if (error?.code === "storage/object-not-found") {
       return null;

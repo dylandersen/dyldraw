@@ -560,6 +560,8 @@ const ExcalidrawWrapper = () => {
       if (!excalidrawAPI) {
         return;
       }
+      // Manual save should win over any queued autosave snapshot.
+      cloudAutosaveRef.current.cancel();
       setIsCloudActionInProgress(true);
       if (!opts.silent) {
         setCloudSyncLabel("Dyldraw: saving...");
@@ -609,13 +611,23 @@ const ExcalidrawWrapper = () => {
         return;
       }
 
+      // Prevent a queued local autosave from racing with a cloud load/apply.
+      cloudAutosaveRef.current.cancel();
       setIsCloudActionInProgress(true);
       if (!opts.silent) {
         setCloudSyncLabel("Dyldraw: loading...");
       }
+      let didCompleteHydration = false;
       try {
-        const scene = await withTimeout(loadSceneFromDyldrawCloud(user.uid));
+        const scene = await withTimeout(
+          loadSceneFromDyldrawCloud(
+            user.uid,
+            excalidrawAPI.getAppState(),
+            excalidrawAPI.getSceneElementsIncludingDeleted(),
+          ),
+        );
         if (!scene) {
+          didCompleteHydration = true;
           if (!opts.silent) {
             setCloudSyncLabel("Dyldraw: no saved scene yet");
             excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
@@ -655,6 +667,7 @@ const ExcalidrawWrapper = () => {
         } finally {
           applyingCloudSceneRef.current = false;
         }
+        didCompleteHydration = true;
         if (!opts.silent) {
           setCloudSyncLabel("Dyldraw: loaded");
           excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
@@ -670,7 +683,7 @@ const ExcalidrawWrapper = () => {
           setCloudSyncLabel(null);
         }
       } finally {
-        if (opts.markHydrated) {
+        if (opts.markHydrated && didCompleteHydration) {
           cloudInitialLoadCompletedForUidRef.current = user.uid;
         }
         setIsCloudActionInProgress(false);
