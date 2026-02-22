@@ -736,8 +736,42 @@ const ExcalidrawWrapper = () => {
       return;
     }
     loadedCloudSceneForUidRef.current = authUser.uid;
-    onCloudLoad({ silent: true });
+    onCloudLoad({ silent: true, forceReplace: true });
   }, [authUser, excalidrawAPI, onCloudLoad]);
+
+  useEffect(() => {
+    if (!authUser || !excalidrawAPI || collabAPI?.isCollaborating()) {
+      return;
+    }
+
+    const refreshFromCloud = () => {
+      if (cloudAutoLoadInFlightRef.current) {
+        return;
+      }
+      cloudAutoLoadInFlightRef.current = true;
+      void onCloudLoad({ silent: true, forceReplace: true }).finally(() => {
+        cloudAutoLoadInFlightRef.current = false;
+      });
+    };
+
+    const onVisibility = () => {
+      if (!document.hidden) {
+        refreshFromCloud();
+      }
+    };
+
+    window.addEventListener(EVENT.FOCUS, refreshFromCloud, false);
+    document.addEventListener(EVENT.VISIBILITY_CHANGE, onVisibility, false);
+
+    return () => {
+      window.removeEventListener(EVENT.FOCUS, refreshFromCloud, false);
+      document.removeEventListener(
+        EVENT.VISIBILITY_CHANGE,
+        onVisibility,
+        false,
+      );
+    };
+  }, [authUser, collabAPI, excalidrawAPI, onCloudLoad]);
 
   useEffect(() => {
     const cloudAutosave = cloudAutosaveRef.current;
