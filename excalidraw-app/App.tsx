@@ -538,6 +538,7 @@ const ExcalidrawWrapper = () => {
         return;
       }
       setIsCloudActionInProgress(true);
+      setCloudSyncLabel("Dyldraw: saving...");
       try {
         await saveSceneToDyldrawCloud({
           uid: user.uid,
@@ -582,6 +583,7 @@ const ExcalidrawWrapper = () => {
       }
 
       setIsCloudActionInProgress(true);
+      setCloudSyncLabel("Dyldraw: loading...");
       try {
         const scene = await loadSceneFromDyldrawCloud(user.uid);
         if (!scene) {
@@ -1295,7 +1297,7 @@ const ExcalidrawWrapper = () => {
           onCollabDialogOpen={onCollabDialogOpen}
           onAuthDialogOpen={() => setIsAuthDialogOpen(true)}
           onCloudSave={() => onCloudSave()}
-          onCloudLoad={onCloudLoad}
+          onCloudLoad={() => onCloudLoad({ forceReplace: true })}
           onSignOut={onSignOut}
           isAuthenticated={!!authUser}
           signedInLabel={signedInLabel}
@@ -1310,7 +1312,7 @@ const ExcalidrawWrapper = () => {
         <AppWelcomeScreen
           onCollabDialogOpen={onCollabDialogOpen}
           onAuthDialogOpen={() => setIsAuthDialogOpen(true)}
-          onCloudLoad={onCloudLoad}
+          onCloudLoad={() => onCloudLoad({ forceReplace: true })}
           isAuthenticated={!!authUser}
           isCollabEnabled={!isCollabDisabled}
         />

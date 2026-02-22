@@ -62,16 +62,11 @@ export const AppMainMenu: React.FC<{
           <MainMenu.Item
             icon={save}
             onSelect={props.onCloudSave}
-            disabled={props.isCloudActionInProgress}
             className="highlighted"
           >
             Save to Dyldraw
           </MainMenu.Item>
-          <MainMenu.Item
-            icon={downloadIcon}
-            onSelect={props.onCloudLoad}
-            disabled={props.isCloudActionInProgress}
-          >
+          <MainMenu.Item icon={downloadIcon} onSelect={props.onCloudLoad}>
             Load from Dyldraw
           </MainMenu.Item>
           <MainMenu.Item icon={loginIcon} onSelect={props.onSignOut}>
