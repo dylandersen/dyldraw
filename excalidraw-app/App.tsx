@@ -232,6 +232,27 @@ const getDyldrawAuthErrorMessage = (error: any) => {
 };
 
 const DYLDRAW_FIRST_LOGIN_THEME_KEY_PREFIX = "dyldraw-first-login-theme-v1";
+const DYLDRAW_CLOUD_IO_TIMEOUT_MS = 15000;
+
+const withTimeout = <T,>(
+  promise: Promise<T>,
+  timeoutMs = DYLDRAW_CLOUD_IO_TIMEOUT_MS,
+) =>
+  new Promise<T>((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(new Error("Cloud request timed out"));
+    }, timeoutMs);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
 
 const initializeScene = async (opts: {
   collabAPI: CollabAPI | null;
@@ -470,7 +491,9 @@ const ExcalidrawWrapper = () => {
         files: BinaryFiles;
       }) => {
         try {
-          await saveSceneToDyldrawCloud({ uid, elements, appState, files });
+          await withTimeout(
+            saveSceneToDyldrawCloud({ uid, elements, appState, files }),
+          );
           setCloudSyncLabel("Dyldraw: synced");
         } catch (error: any) {
           console.error(error);
@@ -538,14 +561,18 @@ const ExcalidrawWrapper = () => {
         return;
       }
       setIsCloudActionInProgress(true);
-      setCloudSyncLabel("Dyldraw: saving...");
+      if (!opts.silent) {
+        setCloudSyncLabel("Dyldraw: saving...");
+      }
       try {
-        await saveSceneToDyldrawCloud({
-          uid: user.uid,
-          elements: excalidrawAPI.getSceneElementsIncludingDeleted(),
-          appState: excalidrawAPI.getAppState(),
-          files: excalidrawAPI.getFiles(),
-        });
+        await withTimeout(
+          saveSceneToDyldrawCloud({
+            uid: user.uid,
+            elements: excalidrawAPI.getSceneElementsIncludingDeleted(),
+            appState: excalidrawAPI.getAppState(),
+            files: excalidrawAPI.getFiles(),
+          }),
+        );
         setCloudSyncLabel("Dyldraw: saved");
         if (!opts.silent) {
           excalidrawAPI.setToast({ message: "Saved to Dyldraw Cloud" });
@@ -583,12 +610,14 @@ const ExcalidrawWrapper = () => {
       }
 
       setIsCloudActionInProgress(true);
-      setCloudSyncLabel("Dyldraw: loading...");
+      if (!opts.silent) {
+        setCloudSyncLabel("Dyldraw: loading...");
+      }
       try {
-        const scene = await loadSceneFromDyldrawCloud(user.uid);
+        const scene = await withTimeout(loadSceneFromDyldrawCloud(user.uid));
         if (!scene) {
-          setCloudSyncLabel("Dyldraw: no saved scene yet");
           if (!opts.silent) {
+            setCloudSyncLabel("Dyldraw: no saved scene yet");
             excalidrawAPI.setToast({ message: "No saved cloud scene yet" });
           }
           return;
@@ -626,8 +655,8 @@ const ExcalidrawWrapper = () => {
         } finally {
           applyingCloudSceneRef.current = false;
         }
-        setCloudSyncLabel("Dyldraw: loaded");
         if (!opts.silent) {
+          setCloudSyncLabel("Dyldraw: loaded");
           excalidrawAPI.setToast({ message: "Loaded from Dyldraw Cloud" });
         }
       } catch (error: any) {
