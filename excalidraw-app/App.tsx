@@ -450,6 +450,8 @@ const ExcalidrawWrapper = () => {
 
   const authUserRef = useRef<User | null>(null);
   const loadedCloudSceneForUidRef = useRef<string | null>(null);
+  const cloudInitialLoadCompletedForUidRef = useRef<string | null>(null);
+  const applyingCloudSceneRef = useRef(false);
   const cloudAutoLoadInFlightRef = useRef(false);
   const latestRemoteSceneUpdateRef = useRef<number | null>(null);
   const dyldrawCloudClientIdRef = useRef(getDyldrawCloudClientId());
@@ -500,6 +502,8 @@ const ExcalidrawWrapper = () => {
       }
       if (!user) {
         loadedCloudSceneForUidRef.current = null;
+        cloudInitialLoadCompletedForUidRef.current = null;
+        latestRemoteSceneUpdateRef.current = null;
         setCloudSyncLabel(null);
       }
     });
@@ -561,7 +565,13 @@ const ExcalidrawWrapper = () => {
   );
 
   const onCloudLoad = useCallback(
-    async (opts: { silent?: boolean; forceReplace?: boolean } = {}) => {
+    async (
+      opts: {
+        silent?: boolean;
+        forceReplace?: boolean;
+        markHydrated?: boolean;
+      } = {},
+    ) => {
       const user = authUserRef.current;
       if (!user) {
         setIsAuthDialogOpen(true);
@@ -595,19 +605,24 @@ const ExcalidrawWrapper = () => {
           return;
         }
 
-        excalidrawAPI.updateScene({
-          elements: restoreElements(scene.elements, null, {
-            repairBindings: true,
-            deleteInvisibleElements: true,
-          }),
-          appState: restoreAppState(
-            scene.appState,
-            excalidrawAPI.getAppState(),
-          ),
-          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-        });
-        if (scene.files) {
-          excalidrawAPI.addFiles(Object.values(scene.files));
+        applyingCloudSceneRef.current = true;
+        try {
+          excalidrawAPI.updateScene({
+            elements: restoreElements(scene.elements, null, {
+              repairBindings: true,
+              deleteInvisibleElements: true,
+            }),
+            appState: restoreAppState(
+              scene.appState,
+              excalidrawAPI.getAppState(),
+            ),
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+          });
+          if (scene.files) {
+            excalidrawAPI.addFiles(Object.values(scene.files));
+          }
+        } finally {
+          applyingCloudSceneRef.current = false;
         }
         setCloudSyncLabel("Dyldraw: loaded");
         if (!opts.silent) {
@@ -624,6 +639,9 @@ const ExcalidrawWrapper = () => {
           setCloudSyncLabel(null);
         }
       } finally {
+        if (opts.markHydrated) {
+          cloudInitialLoadCompletedForUidRef.current = user.uid;
+        }
         setIsCloudActionInProgress(false);
       }
     },
@@ -736,7 +754,7 @@ const ExcalidrawWrapper = () => {
       return;
     }
     loadedCloudSceneForUidRef.current = authUser.uid;
-    onCloudLoad({ silent: true, forceReplace: true });
+    onCloudLoad({ silent: true, forceReplace: true, markHydrated: true });
   }, [authUser, excalidrawAPI, onCloudLoad]);
 
   useEffect(() => {
@@ -1047,7 +1065,12 @@ const ExcalidrawWrapper = () => {
     }
 
     const user = authUserRef.current;
-    if (user && !collabAPI?.isCollaborating()) {
+    if (
+      user &&
+      !collabAPI?.isCollaborating() &&
+      cloudInitialLoadCompletedForUidRef.current === user.uid &&
+      !applyingCloudSceneRef.current
+    ) {
       cloudAutosaveRef.current({
         uid: user.uid,
         elements,
