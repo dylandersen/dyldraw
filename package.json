@@ -60,8 +60,8 @@
     "build:version": "yarn --cwd ./excalidraw-app build:version",
     "build": "yarn --cwd ./excalidraw-app build",
     "build:preview": "yarn --cwd ./excalidraw-app build:preview",
-    "dev": "yarn --cwd ./excalidraw-app start",
-    "start": "yarn --cwd ./excalidraw-app start",
+    "dev": "cd excalidraw-app && vite",
+    "start": "cd excalidraw-app && vite",
     "start:production": "yarn --cwd ./excalidraw-app start:production",
     "start:example": "yarn build:packages && yarn --cwd ./examples/with-script-in-browser start",
     "test:all": "yarn test:typecheck && yarn test:code && yarn test:other && yarn test:app --watch=false",
@@ -88,8 +88,5 @@
     "rm:build": "rimraf --glob excalidraw-app/build excalidraw-app/dist excalidraw-app/dev-dist packages/*/dist packages/*/build examples/*/build examples/*/dist",
     "rm:node_modules": "rimraf --glob node_modules excalidraw-app/node_modules packages/*/node_modules",
     "clean-install": "yarn rm:node_modules && yarn install"
-  },
-  "resolutions": {
-    "strip-ansi": "6.0.1"
   }
 }

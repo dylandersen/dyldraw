@@ -43,6 +43,12 @@
     align-items: center;
 
     border-radius: var(--border-radius-lg);
+    transition:
+      box-shadow 140ms ease,
+      background-color 140ms ease,
+      border-color 140ms ease;
+    border: 1px solid transparent;
+    box-shadow: none;
 
     & + .ToolIcon__label {
       margin-inline-start: 0;
@@ -53,6 +59,10 @@
       width: var(--default-icon-size);
       height: var(--default-icon-size);
       color: var(--icon-fill-color);
+    }
+
+    &:hover {
+      box-shadow: none;
     }
   }
 

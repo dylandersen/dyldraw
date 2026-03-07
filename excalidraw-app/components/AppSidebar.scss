@@ -16,12 +16,7 @@
     background-position: center;
     background-repeat: no-repeat;
 
-    background-image: radial-gradient(
-        circle,
-        transparent 60%,
-        var(--sidebar-bg-color) 100%
-      ),
-      var(--image-source);
+    background-image: var(--image-source);
 
     display: flex;
   }

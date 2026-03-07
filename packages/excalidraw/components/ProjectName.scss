@@ -10,10 +10,13 @@
     text-align: center;
     margin-left: 8px;
     text-overflow: ellipsis;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 
     &--readonly {
       background: none;
       border: none;
+      color: var(--studio-ink);
       &:hover {
         background: none;
       }

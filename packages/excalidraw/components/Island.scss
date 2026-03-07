@@ -2,9 +2,11 @@
   .Island {
     --padding: 0;
     box-sizing: border-box;
-    background-color: var(--island-bg-color);
-    box-shadow: var(--shadow-island);
-    border-radius: var(--border-radius-lg);
+    background: var(--island-bg-color);
+    box-shadow:
+      0 0 0 1px var(--color-border-outline-variant),
+      var(--shadow-island);
+    border-radius: calc(var(--border-radius-lg) + 0.1rem);
     padding: calc(var(--padding) * var(--space-factor));
     position: relative;
     transition: box-shadow 0.5s ease-in-out;

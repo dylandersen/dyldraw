@@ -1,10 +1,14 @@
 @import "../packages/excalidraw/css/variables.module.scss";
 
 .excalidraw {
-  --color-primary-contrast-offset: #625ee0; // to offset Chubb illusion
+  --color-primary-contrast-offset: #223d59; // to offset Chubb illusion
+  --brand-badge-bg: rgba(34, 61, 89, 0.08);
+  --brand-badge-border: rgba(34, 61, 89, 0.18);
 
   &.theme--dark {
-    --color-primary-contrast-offset: #726dff; // to offset Chubb illusion
+    --color-primary-contrast-offset: #8fb2d9; // to offset Chubb illusion
+    --brand-badge-bg: rgba(143, 178, 217, 0.12);
+    --brand-badge-border: rgba(143, 178, 217, 0.22);
   }
 
   .footer-center {
@@ -88,7 +92,7 @@
     --button-hover-bg: var(--color-primary-darker);
     --button-hover-border: var(--color-primary-darker);
     --button-active-bg: var(--color-primary-darker);
-    box-shadow: 0 0 0 1px var(--color-surface-lowest);
+    box-shadow: 0 0 0 1px var(--color-border-outline-variant);
     flex-shrink: 0;
     gap: 0.45rem;
     padding-inline: 0.8rem;
@@ -149,7 +153,7 @@
   height: var(--lg-button-size);
 
   border: none;
-  box-shadow: 0 0 0 1px var(--color-surface-lowest);
+  box-shadow: 0 0 0 1px var(--color-border-outline-variant);
   background-color: var(--color-surface-low);
   color: var(--button-color, var(--color-on-surface)) !important;
 

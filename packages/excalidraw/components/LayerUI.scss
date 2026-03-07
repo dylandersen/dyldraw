@@ -84,10 +84,11 @@
       font-weight: 500;
       line-height: 1;
 
-      border-radius: var(--border-radius-lg);
-      border: 1px solid var(--default-border-color);
-      background-color: var(--island-bg-color);
+      border-radius: calc(var(--border-radius-lg) + 0.1rem);
+      border: 1px solid var(--color-border-outline-variant);
+      background: var(--island-bg-color);
       color: var(--text-primary-color);
+      box-shadow: var(--shadow-island);
 
       &:hover {
         background-color: var(--button-hover-bg);
@@ -127,7 +128,7 @@
     align-items: center;
     border: 1px solid var(--color-primary);
     padding: 0.5rem;
-    border-radius: var(--border-radius-lg);
+    border-radius: calc(var(--border-radius-lg) + 0.1rem);
     background-color: var(--island-bg-color);
     text-decoration: none !important;
 
@@ -139,7 +140,7 @@
     height: var(--mobile-action-button-size, var(--default-button-size));
 
     border: none;
-    box-shadow: 0 0 0 1px var(--color-surface-lowest);
+    box-shadow: 0 0 0 1px var(--color-border-outline-variant);
     background-color: var(--color-surface-low);
     color: var(--button-color, var(--color-on-surface)) !important;
 

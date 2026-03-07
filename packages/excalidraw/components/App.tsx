@@ -1728,7 +1728,7 @@ class App extends React.Component<AppProps, AppState> {
                       // https://stackoverflow.com/q/18470015
                       scrolling="no"
                       referrerPolicy="no-referrer-when-downgrade"
-                      title="Excalidraw Embedded Content"
+                      title="Dyldraw Embedded Content"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen={true}
                       sandbox={`${
@@ -1891,7 +1891,7 @@ class App extends React.Component<AppProps, AppState> {
               padding: `${FRAME_NAME_EDIT_PADDING}px`,
               borderRadius: 4,
               boxShadow: "inset 0 0 0 1px var(--color-primary)",
-              fontFamily: "Assistant",
+              fontFamily: "Nunito",
               fontSize: `${FRAME_STYLE.nameFontSize}px`,
               transform: `translate(-${FRAME_NAME_EDIT_PADDING}px, ${FRAME_NAME_EDIT_PADDING}px)`,
               color: isDarkTheme
@@ -2972,7 +2972,8 @@ class App extends React.Component<AppProps, AppState> {
 
     if (isTestEnv() || isDevEnv()) {
       const setState = this.setState.bind(this);
-      Object.defineProperties(window.h, {
+      const testWindow = window as unknown as Window & { h?: TestHook };
+      Object.defineProperties(testWindow.h!, {
         state: {
           configurable: true,
           get: () => {
@@ -12380,26 +12381,23 @@ class App extends React.Component<AppProps, AppState> {
 // -----------------------------------------------------------------------------
 // TEST HOOKS
 // -----------------------------------------------------------------------------
-declare global {
-  interface Window {
-    h: {
-      scene: Scene;
-      elements: readonly ExcalidrawElement[];
-      state: AppState;
-      setState: React.Component<any, AppState>["setState"];
-      watchState: (prev: any, next: any) => void | undefined;
-      app: InstanceType<typeof App>;
-      history: History;
-      store: Store;
-    };
-  }
-}
+type TestHook = {
+  scene: Scene;
+  elements: readonly ExcalidrawElement[];
+  state: AppState;
+  setState: React.Component<any, AppState>["setState"];
+  watchState: (prev: any, next: any) => void | undefined;
+  app: InstanceType<typeof App>;
+  history: History;
+  store: Store;
+};
 
 export const createTestHook = () => {
   if (isTestEnv() || isDevEnv()) {
-    window.h = window.h || ({} as Window["h"]);
+    const testWindow = window as unknown as Window & { h?: TestHook };
+    testWindow.h = testWindow.h || ({} as TestHook);
 
-    Object.defineProperties(window.h, {
+    Object.defineProperties(testWindow.h, {
       elements: {
         configurable: true,
         get() {
